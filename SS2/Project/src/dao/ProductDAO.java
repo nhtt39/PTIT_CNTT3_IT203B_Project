@@ -205,4 +205,21 @@ public class ProductDAO {
         }
         return list;
     }
+
+    public boolean isNameExists(String name) {
+        String sql = "SELECT * FROM products WHERE name=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+
+            return rs.next();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

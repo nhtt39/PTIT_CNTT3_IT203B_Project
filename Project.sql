@@ -14,7 +14,7 @@ CREATE TABLE users (
 
 CREATE TABLE categories (
                             id int auto_increment primary key,
-                            name varchar(100) not null,
+                            name varchar(100) not null,	
                             description text
 );
 
@@ -98,6 +98,9 @@ VALUES
 (1, 2, 1, 3000);
 
 UPDATE users 
-SET password = '123456'
+SET password = '123456'											
 WHERE email = 'admin@gmail.com';
+
+ALTER TABLE users 
+ADD status ENUM('ACTIVE', 'BLOCKED') DEFAULT 'ACTIVE';
 

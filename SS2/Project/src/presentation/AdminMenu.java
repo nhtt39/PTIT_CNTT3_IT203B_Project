@@ -1,9 +1,12 @@
 package presentation;
 
 import dao.ProductDAO;
+import dao.UserDAO;
+import dao.CategoryDAO;
 import model.Category;
 import model.Product;
-import dao.CategoryDAO;
+import model.User;
+import dao.OrderDAO;
 
 import java.util.List;
 import java.util.Scanner;
@@ -13,30 +16,81 @@ public class AdminMenu {
     private Scanner sc = new Scanner(System.in);
     private ProductDAO productDAO = new ProductDAO();
 
-    private void showProductsByCategory() {
+    private void categoryMenu() {
+        while (true) {
+            System.out.println("\n===== QUẢN LÝ DANH MỤC =====");
+            System.out.println("1. Xem danh mục");
+            System.out.println("2. Thêm danh mục");
+            System.out.println("3. Sửa danh mục");
+            System.out.println("4. Xóa danh mục");
+            System.out.println("0. Quay lại");
+
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1: showProductsByCategory(); break;
+                case 2: addCategory(); break;
+                case 3: updateCategory(); break;
+                case 4: deleteCategory(); break;
+                case 0: return;
+            }
+        }
+    }
+
+    private void productMenu() {
+        while (true) {
+            System.out.println("\n===== QUẢN LÝ SẢN PHẨM =====");
+            System.out.println("1. Thêm sản phẩm");
+            System.out.println("2. Sửa sản phẩm");
+            System.out.println("3. Xóa sản phẩm");
+            System.out.println("0. Quay lại");
+
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1: addProduct(); break;
+                case 2: updateProduct(); break;
+                case 3: deleteProduct(); break;
+                case 0: return;
+            }
+        }
+    }
+
+    private void userMenu() {
+        while (true) {
+            System.out.println("\n===== QUẢN LÝ NGƯỜI DÙNG =====");
+            System.out.println("1. Xem danh sách");
+            System.out.println("2. Khóa/Mở tài khoản");
+            System.out.println("0. Quay lại");
+
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1: showUsers(); break;
+                case 2: manageUsers(); break;
+                case 0: return;
+            }
+        }
+    }
+
+    private void showUsers() {
+        UserDAO userDAO = new UserDAO();
+
         try {
-            CategoryDAO categoryDAO = new CategoryDAO();
+            List<User> users = userDAO.getAllUsers();
 
-            while (true) {
-                List<Category> categories = categoryDAO.getAll();
+            System.out.println("===== DANH SÁCH USER =====");
+            System.out.printf("%-5s %-25s %-10s %-10s\n", "ID", "Email", "Role", "Status");
 
-                System.out.println("===== DANH MỤC =====");
-                for (Category c : categories) {
-                    System.out.println(c.getId() + ". " + c.getName());
-                }
-                System.out.println("0. Quay lại");
-
-                System.out.print("Chọn danh mục: ");
-                int cateId = sc.nextInt();
-
-                if (cateId == 0) return;
-
-                List<Product> products = productDAO.getByCategory(cateId);
-
-                System.out.println("===== SẢN PHẨM =====");
-                for (Product p : products) {
-                    System.out.println(p.getId() + " - " + p.getName() + " - " + p.getPrice());
-                }
+            for (User u : users) {
+                System.out.printf("%-5d %-25s %-10s %-10s\n",
+                        u.getId(),
+                        u.getEmail(),
+                        u.getRole(),
+                        u.getStatus());
             }
 
         } catch (Exception e) {
@@ -44,39 +98,48 @@ public class AdminMenu {
         }
     }
 
-    private void updateProduct() {
-        System.out.print("Nhập ID sản phẩm: ");
-        int id = sc.nextInt();
-        sc.nextLine();
+    private void manageUsers() {
+        UserDAO userDAO = new UserDAO();
 
-        Product p = productDAO.findById(id);
+        try {
+            showUsers();
 
-        if (p == null) {
-            System.out.println("Không tìm thấy!");
-            return;
+            System.out.print("Nhập ID user: ");
+            int id = sc.nextInt();
+            sc.nextLine();
+
+            System.out.println("1. Khóa");
+            System.out.println("2. Mở khóa");
+
+            int choice = sc.nextInt();
+
+            if (choice == 1) {
+                userDAO.updateStatus(id, "BLOCKED");
+            } else {
+                userDAO.updateStatus(id, "ACTIVE");
+            }
+
+            System.out.println("Cập nhật thành công!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
-        System.out.print("Tên mới (" + p.getName() + "): ");
-        String name = sc.nextLine();
-        if (!name.isEmpty()) p.setName(name);
+    private void showProductsByCategory() {
+        try {
+            CategoryDAO categoryDAO = new CategoryDAO();
 
-        System.out.print("Brand mới (" + p.getBrand() + "): ");
-        String brand = sc.nextLine();
-        if (!brand.isEmpty()) p.setBrand(brand);
+            List<Category> categories = categoryDAO.getAll();
 
-        System.out.print("Giá mới (" + p.getPrice() + "): ");
-        String price = sc.nextLine();
-        if (!price.isEmpty()) p.setPrice(Double.parseDouble(price));
+            System.out.println("===== DANH MỤC =====");
+            for (Category c : categories) {
+                System.out.println(c.getId() + ". " + c.getName());
+            }
 
-        System.out.print("Stock mới (" + p.getStock() + "): ");
-        String stock = sc.nextLine();
-        if (!stock.isEmpty()) p.setStock(Integer.parseInt(stock));
-
-        System.out.print("Category mới (" + p.getCategoryId() + "): ");
-        String cate = sc.nextLine();
-        if (!cate.isEmpty()) p.setCategoryId(Integer.parseInt(cate));
-
-        productDAO.update(p);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void addCategory() {
@@ -91,7 +154,7 @@ public class AdminMenu {
             c.setDescription(sc.nextLine());
 
             dao.add(c);
-            System.out.println("Thêm danh mục thành công!");
+            System.out.println("Thêm thành công!");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -102,7 +165,7 @@ public class AdminMenu {
         try {
             CategoryDAO dao = new CategoryDAO();
 
-            System.out.print("Nhập ID danh mục: ");
+            System.out.print("ID: ");
             int id = sc.nextInt();
             sc.nextLine();
 
@@ -116,7 +179,6 @@ public class AdminMenu {
             c.setDescription(sc.nextLine());
 
             dao.update(c);
-            System.out.println("Cập nhật thành công!");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,11 +189,19 @@ public class AdminMenu {
         try {
             CategoryDAO dao = new CategoryDAO();
 
-            System.out.print("Nhập ID danh mục cần xóa: ");
+            System.out.print("ID: ");
             int id = sc.nextInt();
+            sc.nextLine();
 
-            dao.delete(id);
-            System.out.println("Xóa thành công!");
+            System.out.print("Bạn có chắc muốn xóa? (Y/N): ");
+            String confirm = sc.nextLine();
+
+            if (confirm.equalsIgnoreCase("Y")) {
+                dao.delete(id);
+                System.out.println(" Đã xóa!");
+            } else {
+                System.out.println(" Đã hủy!");
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,28 +210,15 @@ public class AdminMenu {
 
     private void addProduct() {
         Product p = new Product();
-        CategoryDAO categoryDAO = new CategoryDAO();
-
-        try {
-            List<Category> categories = categoryDAO.getAll();
-
-            System.out.println("===== DANH MỤC =====");
-            for (Category c : categories) {
-                System.out.println(c.getId() + ". " + c.getName());
-            }
-
-            System.out.print("Chọn danh mục: ");
-            int cateId = sc.nextInt();
-            sc.nextLine();
-
-            p.setCategoryId(cateId);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         System.out.print("Tên: ");
-        p.setName(sc.nextLine());
+        String name = sc.nextLine();
+        if (productDAO.isNameExists(name)) {
+            System.out.println(" Tên sản phẩm đã tồn tại!");
+            return;
+        }
+
+        p.setName(name);
 
         System.out.print("Brand: ");
         p.setBrand(sc.nextLine());
@@ -172,41 +229,132 @@ public class AdminMenu {
         System.out.print("Stock: ");
         p.setStock(sc.nextInt());
 
+        System.out.print("Category ID: ");
+        p.setCategoryId(sc.nextInt());
+        sc.nextLine();
+
         productDAO.add(p);
     }
 
-    private void deleteProduct() {
-        System.out.print("Nhập ID sản phẩm cần xóa: ");
+    private void updateProduct() {
+        System.out.print("ID: ");
         int id = sc.nextInt();
+        sc.nextLine();
 
-        productDAO.delete(id);
-        System.out.println("Xóa thành công!");
+        Product p = productDAO.findById(id);
+
+        if (p == null) {
+            System.out.println("Không tìm thấy!");
+            return;
+        }
+
+        System.out.print("Tên mới: ");
+        String newName = sc.nextLine();
+
+        if (!newName.isEmpty() && productDAO.isNameExists(newName)) {
+            System.out.println(" Tên đã tồn tại!");
+            return;
+        }
+
+        if (!newName.isEmpty()) p.setName(newName);
+
+        System.out.print("Brand: ");
+        p.setBrand(sc.nextLine());
+
+        System.out.print("Giá: ");
+        p.setPrice(sc.nextDouble());
+
+        System.out.print("Stock: ");
+        p.setStock(sc.nextInt());
+
+        productDAO.update(p);
     }
 
-    public void menu() {
+    private void deleteProduct() {
+        System.out.print("Nhập ID: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        System.out.print("Bạn có chắc muốn xóa? (Y/N): ");
+        String confirm = sc.nextLine();
+
+        if (confirm.equalsIgnoreCase("Y")) {
+            productDAO.delete(id);
+            System.out.println(" Đã xóa!");
+        } else {
+            System.out.println(" Đã hủy!");
+        }
+    }
+
+    private void orderMenu() {
+        OrderDAO orderDAO = new OrderDAO();
+
         while (true) {
-            System.out.println("===== ADMIN MENU =====");
-            System.out.println("1. Xem danh mục");
-            System.out.println("2. Thêm danh mục");
-            System.out.println("3. Sửa danh mục");
-            System.out.println("4. Xóa danh mục");
-            System.out.println("5. Thêm sản phẩm");
-            System.out.println("6. Sửa sản phẩm");
-            System.out.println("7. Xóa sản phẩm");
-            System.out.println("0. Đăng xuất");
+            System.out.println("\n===== QUẢN LÝ ĐƠN HÀNG =====");
+            System.out.println("1. Xem danh sách đơn hàng của khách");
+            System.out.println("2. Cập nhật trạng thái đơn hàng");
+            System.out.println("0. Quay lại");
 
             int choice = sc.nextInt();
             sc.nextLine();
 
             switch (choice) {
-                case 1: showProductsByCategory(); break;
-                case 2: addCategory(); break;
-                case 3: updateCategory(); break;
-                case 4: deleteCategory(); break;
-                case 5: addProduct(); break;
-                case 6: updateProduct(); break;
-                case 7: deleteProduct(); break;
-                case 0: return;
+                case 1:
+                    // Lấy danh sách các đơn hàng, hiển thị theo khách
+                    List<String> orders = orderDAO.getAllOrdersWithDetails();
+                    if (orders.isEmpty()) {
+                        System.out.println("Chưa có đơn hàng nào!");
+                    } else {
+                        for (String s : orders) {
+                            System.out.println(s); // ví dụ: "OrderID: 1 | UserID: 2 | Products: iPhone 14 x1 | Total: 3000 | Status: PENDING"
+                        }
+                    }
+                    break;
+
+                case 2:
+                    System.out.print("Nhập Order ID cần cập nhật trạng thái: ");
+                    int orderId = sc.nextInt();
+                    sc.nextLine();
+
+                    System.out.println("Chọn trạng thái mới:");
+                    System.out.println("1. PENDING");
+                    System.out.println("2. SHIPPING");
+                    System.out.println("3. DELIVERED");
+                    int st = sc.nextInt();
+                    sc.nextLine();
+
+                    String status = "PENDING";
+                    if (st == 2) status = "SHIPPING";
+                    if (st == 3) status = "DELIVERED";
+
+                    orderDAO.updateOrderStatus(orderId, status);
+                    System.out.println("Cập nhật trạng thái thành công!");
+                    break;
+
+                case 0:
+                    return;
+            }
+        }
+    }
+
+    public void menu() {
+        while (true) {
+            System.out.println("\n===== ADMIN MENU =====");
+            System.out.println("1. Quản lý danh mục");
+            System.out.println("2. Quản lý sản phẩm");
+            System.out.println("3. Quản lý người dùng");
+            System.out.println("4. Quản lý đơn hàng");
+            System.out.println("5. Đăng xuất");
+
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1: categoryMenu(); break;
+                case 2: productMenu(); break;
+                case 3: userMenu(); break;
+                case 4: orderMenu(); break;
+                case 5: return;
             }
         }
     }

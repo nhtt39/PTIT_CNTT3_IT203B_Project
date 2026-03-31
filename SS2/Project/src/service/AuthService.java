@@ -18,19 +18,21 @@ public class AuthService {
         }
     }
 
-    public User login(String email, String password) {
-        try {
-            User user = userDAO.findByEmail(email);
+    public User login(String email, String password) throws Exception {
+        User user = userDAO.findByEmail(email);
 
-            if (user != null && user.getPassword().equals(password)) {
-                System.out.println("Đăng nhập thành công!");
-                return user;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (user == null) {
+            return null;
         }
 
-        return null;
+        if (!user.getPassword().equals(password)) {
+            return null;
+        }
+
+        if (user.getStatus() != null && user.getStatus().equals("BLOCKED")) {
+            throw new Exception("BLOCKED");
+        }
+
+        return user;
     }
 }

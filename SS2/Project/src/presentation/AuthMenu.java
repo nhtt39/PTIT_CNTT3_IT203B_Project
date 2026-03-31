@@ -2,6 +2,8 @@ package presentation;
 
 import model.User;
 import service.AuthService;
+import dao.UserDAO;
+import util.ValidationUtil;
 
 import java.util.Scanner;
 
@@ -32,23 +34,40 @@ public class AuthMenu {
         }
     }
 
-    private void login() throws Exception {
-        System.out.print("Email: ");
-        String email = sc.nextLine();
+    private void login() {
+        try {
+            System.out.print("Email: ");
+            String email = sc.nextLine();
 
-        System.out.print("Password: ");
-        String pass = sc.nextLine();
+            System.out.print("Password: ");
+            String pass = sc.nextLine();
 
-        User user = authService.login(email, pass);
+            User user = authService.login(email, pass);
 
-        if (user != null) {
-            if (user.getRole().equals("ADMIN")) {
-                new AdminMenu().menu();
-            } else {
-                new CustomerMenu().menu(user.getId());
+            if (!email.contains("@")) {
+                System.out.println("Email không hợp lệ!");
+                return;
             }
-        } else {
-            System.out.println("Sai tài khoản!");
+
+            if (user != null) {
+                System.out.println("Đăng nhập thành công!");
+
+                if (user.getRole().equals("ADMIN")) {
+                    new AdminMenu().menu();
+                } else {
+                    new CustomerMenu().menu(user.getId());
+                }
+            } else {
+                System.out.println("Sai tài khoản hoặc mật khẩu!");
+            }
+
+        } catch (Exception e) {
+
+            if (e.getMessage().equals("BLOCKED")) {
+                System.out.println("Tài khoản đã bị khóa");
+            } else {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -59,7 +78,13 @@ public class AuthMenu {
         user.setName(sc.nextLine());
 
         System.out.print("Email: ");
-        user.setEmail(sc.nextLine());
+        String email = sc.nextLine();
+
+        if (!ValidationUtil.isValidEmail(email)) {
+            System.out.println(" Email không hợp lệ!");
+            return;
+        }
+        user.setEmail(email);
 
         System.out.print("Password: ");
         user.setPassword(sc.nextLine());
